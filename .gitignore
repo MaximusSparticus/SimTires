@@ -1,0 +1,16 @@
+# Build Products
+/build
+/build-rel
+/build-dbg
+
+# Installation
+/install/
+
+# Log directory for colcon logs
+/log/
+
+# Optix requires manual download
+/extern/optix/doc/
+/extern/optix/include/
+/extern/optix/NVIDIA-OptiX-SDK-7.7.0-linux64-x86_64.sh 
+/extern/optix/SDK
