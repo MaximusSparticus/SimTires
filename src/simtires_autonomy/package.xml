@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>simtires_autonomy</name>
+  <version>0.1.0</version>
+  <description>Autonomous driving algorithms for SimTires vehicles</description>
+  <maintainer email="your.email@example.com">Your Name</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Core ROS2 dependencies -->
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  
+  <!-- Navigation and autonomy -->
+  <depend>std_srvs</depend>
+  <depend>visualization_msgs</depend>
+  
+  <!-- Chrono ROS2 integration -->
+  <depend>chrono_ros_interfaces</depend>
+  
+  <!-- Optional navigation stack dependencies -->
+  <!-- Uncomment these when you want to integrate with ROS2 Nav2 -->
+  <!-- <depend>nav2_msgs</depend> -->
+  <!-- <depend>nav2_core</depend> -->
+  <!-- <depend>nav2_costmap_2d</depend> -->
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,50 +1,22 @@
-// =============================================================================
-// PROJECT CHRONO - http://projectchrono.org
-//
-// Copyright (c) 2014 projectchrono.org
-// All rights reserved.
-//
-// Use of this source code is governed by a BSD-style license that can be found
-// in the LICENSE file at the top level of the distribution and at
-// http://projectchrono.org/license-chrono.txt.
-//
-// =============================================================================
-// Authors: Radu Serban
-// =============================================================================
-//
-// Utility function for selecting the Chrono solver and integrator.
-// Use with caution and double check that the solver and integrator parameters
-// are appropriate for the calling program.
-//
-// =============================================================================
+// Implementation of Chrono solver and integrator setup utilities
 
-#include "chrono/ChConfig.h"
-#include "chrono/physics/ChSystem.h"
+#include "simtires/chrono_solver_setup.hpp"
+#include <iostream>
 
-#include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/solver/ChIterativeSolverVI.h"
-#include "chrono/solver/ChDirectSolverLS.h"
+namespace simtires {
 
-#ifdef CHRONO_PARDISO_MKL
-    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-#endif
-
-#ifdef CHRONO_MUMPS
-    #include "chrono_mumps/ChSolverMumps.h"
-#endif
-
-bool SetChronoSolver(chrono::ChSystem& sys,
-                     const chrono::ChSolver::Type& solver_type,
-                     const chrono::ChTimestepper::Type& integrator_type,
-                     int num_threads_mkl = 1,
-                     bool verbose = true) {
+bool SetupChronoSolver(chrono::ChSystem& sys,
+                      const chrono::ChSolver::Type& solver_type,
+                      const chrono::ChTimestepper::Type& integrator_type,
+                      int num_threads_mkl,
+                      bool verbose) {
     auto contact_method = sys.GetContactMethod();
     auto slvr_type = solver_type;
     auto intg_type = integrator_type;
 
     using std::cout;
     using std::endl;
-    std::string prefix = "[SetChronoSolver] ";
+    std::string prefix = "[SetupChronoSolver] ";
 
     // For NSC systems, suggest implicit linearized Euler and an iterative VI solver
     if (verbose) {
@@ -162,3 +134,4 @@ bool SetChronoSolver(chrono::ChSystem& sys,
     return true;
 }
 
+} // namespace simtires

@@ -9,6 +9,9 @@
 # Log directory for colcon logs
 /log/
 
+# IDE files
+/.vscode/settings.json
+
 # Optix requires manual download
 /extern/optix/doc/
 /extern/optix/include/

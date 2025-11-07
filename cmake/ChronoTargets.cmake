@@ -8,7 +8,11 @@ if(TARGET Chrono::Engine)
 endif()
 
 # Use proper path resolution
-get_filename_component(CHRONO_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/install/chrono" ABSOLUTE)
+# Verify directories exist
+get_filename_component(CHRONO_ROOT_DIR ${CHRONO_ROOT_DIR} ABSOLUTE)
+if(NOT EXISTS "${CHRONO_ROOT_DIR}")
+    message(FATAL_ERROR "Chrono Root directory not found: ${CHRONO_ROOT_DIR}")
+endif()
 set(CHRONO_LIB_DIR "${CHRONO_ROOT_DIR}/lib")
 set(CHRONO_INCLUDE_DIRS
     "${CHRONO_ROOT_DIR}/include"
@@ -163,6 +167,43 @@ endif()
 # Set RPATH for runtime library discovery
 if(TARGET Chrono::Engine)
     set_target_properties(Chrono::Engine PROPERTIES
+        INSTALL_RPATH "${CHRONO_LIB_DIR}"
+    )
+endif()
+
+# TODO(zmd): Do I need to do these for each target?
+if (TARGET Chrono::Vehicle)
+    set_target_properties(Chrono::Vehicle PROPERTIES
+        INSTALL_RPATH "${CHRONO_LIB_DIR}"
+    )
+endif()
+
+if (TARGET Chrono::Vehicle_Irrlicht)
+    set_target_properties(Chrono::Vehicle_Irrlicht PROPERTIES
+        INSTALL_RPATH "${CHRONO_LIB_DIR}"
+    )
+endif()
+
+if (TARGET Chrono::Irrlicht)
+    set_target_properties(Chrono::Irrlicht PROPERTIES
+        INSTALL_RPATH "${CHRONO_LIB_DIR}"
+    )
+endif()
+
+if (TARGET Chrono::ROS)
+    set_target_properties(Chrono::ROS PROPERTIES
+        INSTALL_RPATH "${CHRONO_LIB_DIR}"
+    )
+endif()
+
+if (TARGET Chrono::Sensor)
+    set_target_properties(Chrono::Sensor PROPERTIES
+        INSTALL_RPATH "${CHRONO_LIB_DIR}"
+    )
+endif()
+
+if (TARGET Chrono::Parsers)
+    set_target_properties(Chrono::Parsers PROPERTIES
         INSTALL_RPATH "${CHRONO_LIB_DIR}"
     )
 endif()
