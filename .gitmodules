@@ -1,6 +1,6 @@
-[submodule "extern/chrono_ros_interfaces"]
-	path = extern/chrono_ros_interfaces
+[submodule "src/chrono_ros_interfaces"]
+	path = src/chrono_ros_interfaces
 	url = https://github.com/MaximusSparticus/chrono_ros_interfaces.git
-[submodule "extern/chrono"]
-	path = extern/chrono
+[submodule "src/chrono/extern/chrono"]
+	path = src/chrono/extern/chrono
 	url = https://github.com/MaximusSparticus/chrono.git
