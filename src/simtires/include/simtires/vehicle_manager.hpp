@@ -12,7 +12,7 @@
 // Chrono includes
 #include "chrono/physics/ChSystem.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
-#include "chrono_vehicle/terrain/SCMTerrain.h"
+#include "chrono_vehicle/ChTerrain.h"
 
 namespace simtires_srvs {
     // TODO(zmd): Define services
@@ -39,7 +39,7 @@ class VehicleManager {
     ~VehicleManager() = default;
     
     void initialize(std::shared_ptr<chrono::ChSystem> system);
-    void setTerrain(std::shared_ptr<chrono::vehicle::SCMTerrain> terrain);
+    void setTerrain(std::shared_ptr<chrono::vehicle::ChTerrain> terrain);
     void step();
     
     // Vehicle management
@@ -60,7 +60,7 @@ class VehicleManager {
     
     std::shared_ptr<rclcpp::Node> m_node;
     std::shared_ptr<chrono::ChSystem> m_system;
-    std::shared_ptr<chrono::vehicle::SCMTerrain> m_terrain;
+    std::shared_ptr<chrono::vehicle::ChTerrain> m_terrain;
     
     std::unordered_map<int, VehicleInstance> m_vehicles;
     int m_next_vehicle_id;

@@ -62,6 +62,13 @@ class SimulationNode : public rclcpp::Node {
 
  private:
     void simulationStep() {
+        // End simulation if visualization window was closed
+        if (m_vis_manager && !m_vis_manager->isRunning()) {
+            RCLCPP_INFO(get_logger(), "Visualization closed, shutting down simulation");
+            rclcpp::shutdown();
+            return;
+        }
+        
         // Update all simulation components
         m_world->step();
         m_vehicle_manager->step();

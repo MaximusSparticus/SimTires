@@ -3,9 +3,11 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/core/ChTypes.h"
+#include "chrono/utils/ChOpenMP.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include <cstdlib>
+#include <algorithm>
 
 SimulationWorld::SimulationWorld(std::shared_ptr<rclcpp::Node> node)
 : m_node(node) {
@@ -19,19 +21,34 @@ SimulationWorld::SimulationWorld(std::shared_ptr<rclcpp::Node> node)
 void SimulationWorld::initialize() {
     RCLCPP_INFO(m_node->get_logger(), "Initializing simulation world...");
     
-    // Check if Chrono data directory exists
+    // Check data directory - first try environment variable, then compile-time definition
     const char* data_dir = std::getenv("CHRONO_DATA_DIR");
     if (data_dir) {
-        RCLCPP_INFO(m_node->get_logger(), "CHRONO_DATA_DIR set to: %s", data_dir);
+        RCLCPP_INFO(m_node->get_logger(), "CHRONO_DATA_DIR environment variable set to: %s", data_dir);
     } else {
-        RCLCPP_WARN(m_node->get_logger(), "CHRONO_DATA_DIR environment variable not set");
-        RCLCPP_WARN(m_node->get_logger(), "This may cause issues loading Chrono data files");
-        RCLCPP_WARN(m_node->get_logger(), "Set with: export CHRONO_DATA_DIR=/path/to/chrono/data");
+        // Use compile-time definition
+        #ifdef CHRONO_DATA_DIR
+        RCLCPP_INFO(m_node->get_logger(), "Using compile-time CHRONO_DATA_DIR: %s", CHRONO_DATA_DIR);
+        chrono::SetChronoDataPath(CHRONO_DATA_DIR);
+        #else
+        RCLCPP_ERROR(m_node->get_logger(), "CHRONO_DATA_DIR not defined - terrain files will not be found!");
+        #endif
     }
     
     // Create Chrono system
     m_system = std::make_shared<chrono::ChSystemSMC>();
     m_system->SetCollisionSystemType(chrono::ChCollisionSystem::Type::BULLET);
+    
+    // Set gravity
+    m_system->SetGravitationalAcceleration(chrono::ChVector3d(0, 0, -9.81));
+    
+    // Configure threading
+    int num_threads_chrono = std::min(8, chrono::ChOMP::GetNumProcs());
+    int num_threads_collision = 1;
+    int num_threads_eigen = 1;
+    m_system->SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen);
+    
+    RCLCPP_INFO(m_node->get_logger(), "System configured with %d threads", num_threads_chrono);
     
     // Setup solver
     auto solver = chrono::ChSolver::Type::BARZILAIBORWEIN;
@@ -79,12 +96,12 @@ void SimulationWorld::addActiveDomainsForVehicles(
 }
 
 void SimulationWorld::setupTerrain() {
-    RCLCPP_INFO(m_node->get_logger(), "Setting up terrain...");
+    RCLCPP_INFO(m_node->get_logger(), "Setting up terrain with config: %s", m_world_config.c_str());
     
     // Create terrain based on config
     m_terrain = std::make_shared<chrono::vehicle::SCMTerrain>(m_system.get());
     
-    // Basic flat terrain setup - you can expand this based on m_world_config
+    // Set soil parameters for SCM terrain
     m_terrain->SetSoilParameters(2e6,   // Bekker Kphi
                                 0,      // Bekker Kc  
                                 1.1,    // Bekker n exponent
@@ -96,26 +113,57 @@ void SimulationWorld::setupTerrain() {
     );
     
     // Initialize terrain based on config
-    double delta = 0.05;
+    double delta = 0.05;  // Grid resolution
     
-    if (m_world_config == "flat_world") {
-        // Flat terrain
+    try {
+        if (m_world_config == "flat_world") {
+            // Flat terrain
+            chrono::ChVector2d patch_size(40.0, 16.0);
+            m_terrain->Initialize(patch_size.x(), patch_size.y(), delta);
+            RCLCPP_INFO(m_node->get_logger(), "Initialized flat terrain: %.1fx%.1f m", patch_size.x(), patch_size.y());
+        } else if (m_world_config == "bump_world") {
+            // Bump terrain from mesh file
+            std::string mesh_file = chrono::vehicle::GetVehicleDataFile("terrain/meshes/bump.obj");
+            RCLCPP_INFO(m_node->get_logger(), "Loading terrain mesh from: %s", mesh_file.c_str());
+            m_terrain->Initialize(mesh_file, delta);
+            RCLCPP_INFO(m_node->get_logger(), "Initialized bump terrain from mesh");
+        } else {
+            // Default to bump terrain 
+            std::string mesh_file = chrono::vehicle::GetVehicleDataFile("terrain/meshes/bump.obj");
+            RCLCPP_INFO(m_node->get_logger(), "Unknown config '%s', defaulting to bump terrain", m_world_config.c_str());
+            RCLCPP_INFO(m_node->get_logger(), "Loading terrain mesh from: %s", mesh_file.c_str());
+            m_terrain->Initialize(mesh_file, delta);
+            RCLCPP_INFO(m_node->get_logger(), "Initialized bump terrain from mesh");
+        }
+        
+        // Configure visualization
+        m_terrain->GetMesh()->SetWireframe(true);
+        
+        // Try to set texture - this might fail if texture file not found
+        try {
+            std::string texture_file = chrono::vehicle::GetVehicleDataFile("terrain/textures/dirt.jpg");
+            RCLCPP_INFO(m_node->get_logger(), "Loading terrain texture from: %s", texture_file.c_str());
+            m_terrain->GetMesh()->SetTexture(texture_file);
+        } catch (const std::exception& e) {
+            RCLCPP_WARN(m_node->get_logger(), "Failed to load terrain texture: %s", e.what());
+        }
+        
+        // Set up visualization coloring
+        m_terrain->SetColormap(chrono::ChColormap::Type::FAST);
+        m_terrain->SetPlotType(chrono::vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.08);
+        
+        RCLCPP_INFO(m_node->get_logger(), "Terrain setup complete");
+        
+    } catch (const std::exception& e) {
+        RCLCPP_ERROR(m_node->get_logger(), "Failed to initialize terrain: %s", e.what());
+        RCLCPP_ERROR(m_node->get_logger(), "Falling back to flat terrain");
+        
+        // Fallback to flat terrain
         chrono::ChVector2d patch_size(40.0, 16.0);
         m_terrain->Initialize(patch_size.x(), patch_size.y(), delta);
-        RCLCPP_INFO(m_node->get_logger(), "Initialized flat terrain: %.1fx%.1f", patch_size.x(), patch_size.y());
-    } else {
-        // Bump terrain (default)
-        m_terrain->Initialize(chrono::vehicle::GetVehicleDataFile("terrain/meshes/bump.obj"), delta);
-        RCLCPP_INFO(m_node->get_logger(), "Initialized bump terrain from mesh");
+        m_terrain->GetMesh()->SetWireframe(true);
+        RCLCPP_INFO(m_node->get_logger(), "Fallback flat terrain initialized");
     }
-   
-    // Configure visualization
-    m_terrain->GetMesh()->SetWireframe(true);
-    m_terrain->GetMesh()->SetTexture(chrono::vehicle::GetVehicleDataFile("terrain/textures/dirt.jpg"));
-    m_terrain->SetColormap(chrono::ChColormap::Type::FAST);
-    m_terrain->SetPlotType(chrono::vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.08);
-
-    RCLCPP_INFO(m_node->get_logger(), "Terrain setup complete");
 }
 
 void SimulationWorld::loadWorldConfig() {

@@ -32,7 +32,7 @@ void VehicleManager::initialize(std::shared_ptr<chrono::ChSystem> system) {
     RCLCPP_INFO(m_node->get_logger(), "Vehicle manager initialized successfully");
 }
 
-void VehicleManager::setTerrain(std::shared_ptr<chrono::vehicle::SCMTerrain> terrain) {
+void VehicleManager::setTerrain(std::shared_ptr<chrono::vehicle::ChTerrain> terrain) {
     m_terrain = terrain;
     
     if (m_terrain) {
@@ -90,13 +90,13 @@ int VehicleManager::spawnVehicle(
     instance.namespace_prefix = namespace_prefix;
     
     // Create HMMWV vehicle
-    instance.vehicle = std::make_shared<chrono::vehicle::hmmwv::HMMWV_Full>();
+    instance.vehicle = std::make_shared<chrono::vehicle::hmmwv::HMMWV_Full>(m_system.get());
     instance.vehicle->SetCollisionSystemType(chrono::ChCollisionSystem::Type::BULLET);
     instance.vehicle->SetContactMethod(chrono::ChContactMethod::SMC);
     instance.vehicle->SetChassisFixed(false);
     
     // Set initial position - offset by vehicle ID to avoid overlaps
-    chrono::ChVector3d init_pos(-15.0 + instance.vehicle_id * 5.0, -6.0, 0.6);
+    chrono::ChVector3d init_pos(-15.0 + instance.vehicle_id * 5.0, -6.0, 2.0);
     instance.vehicle->SetInitPosition(chrono::ChCoordsys<>(init_pos, chrono::QUNIT));
     
     instance.vehicle->SetEngineType(chrono::vehicle::EngineModelType::SHAFTS);
