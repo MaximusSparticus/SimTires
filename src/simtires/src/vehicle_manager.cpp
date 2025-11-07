@@ -142,9 +142,9 @@ void VehicleManager::createVehicleROSInterface(VehicleInstance& vehicle) {
     std::string topic_prefix = vehicle.namespace_prefix.empty() ? "" : vehicle.namespace_prefix + "/";
     
     // Create command velocity subscriber
-    vehicle.cmd_vel_sub = m_node->create_subscription<geometry_msgs::msg::Twist>(
-        topic_prefix + "cmd_vel", 10,
-        [this, id = vehicle.vehicle_id](const geometry_msgs::msg::Twist::SharedPtr msg) {
+    vehicle.driver_inputs_sub = m_node->create_subscription<chrono_ros_interface::msg::DriverInputs>(
+        topic_prefix + "inputs/driver_inputs", 10,
+        [this, id = vehicle.vehicle_id](const chrono_ros_interface::msg::DriverInputs::SharedPtr msg) {
             handleVehicleControl(id, msg);
         });
     

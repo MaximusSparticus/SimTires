@@ -26,7 +26,7 @@ struct ControlInputs {
 
 struct VehicleInstance {
     std::shared_ptr<chrono::vehicle::hmmwv::HMMWV_Full> vehicle;
-    rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_vel_sub;
+    rclcpp::Subscription<chrono_ros_interface::msg::DriverInputs>::SharedPtr driver_inputs_sub;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;
     std::string namespace_prefix;
     int vehicle_id;
@@ -56,7 +56,7 @@ class VehicleManager {
     void setupDefaultVehicle();
     void createVehicleROSInterface(VehicleInstance& vehicle);
     void updateVehicleOdometry(VehicleInstance& vehicle);
-    void handleVehicleControl(int vehicle_id, const geometry_msgs::msg::Twist::SharedPtr msg);
+    void handleVehicleControl(int vehicle_id, const chrono_ros_interface::msg::DriverInputs::SharedPtr msg);
     
     std::shared_ptr<rclcpp::Node> m_node;
     std::shared_ptr<chrono::ChSystem> m_system;
