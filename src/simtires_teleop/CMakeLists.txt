@@ -21,4 +21,10 @@ install(TARGETS
   teleop_driver
   DESTINATION lib/${PROJECT_NAME})
 
+# Install launch files
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+  FILES_MATCHING PATTERN "*.launch.py"
+)
+
 ament_package()
