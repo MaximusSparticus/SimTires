@@ -1,5 +1,5 @@
 <package format="2">
-  <name>teleop_driver</name>
+  <name>simtires_teleop</name>
   <version>0.0.1</version>
   <description>ROS 2 Teleop Driver Node</description>
   <maintainer email="maxdiekel@gmail.com">Z. Max Diekel</maintainer>
@@ -10,13 +10,13 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>joy</build_depend>
-  <build_depend>chrono_ros_interface</build_depend>
+  <build_depend>chrono_ros_interfaces</build_depend>
 
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>joy</exec_depend>
-  <exec_depend>chrono_ros_interface</exec_depend>
+  <exec_depend>chrono_ros_interfaces</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

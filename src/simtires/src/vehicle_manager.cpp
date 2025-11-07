@@ -62,6 +62,7 @@ void VehicleManager::step() {
             inputs.m_throttle = vehicle_instance.control_inputs.throttle;
             inputs.m_steering = vehicle_instance.control_inputs.steering;
             inputs.m_braking = vehicle_instance.control_inputs.braking;
+            inputs.m_clutch = vehicle_instance.control_inputs.clutch;
             
             // CRITICAL: Synchronize vehicle with terrain
             if (m_terrain) {
@@ -142,9 +143,9 @@ void VehicleManager::createVehicleROSInterface(VehicleInstance& vehicle) {
     std::string topic_prefix = vehicle.namespace_prefix.empty() ? "" : vehicle.namespace_prefix + "/";
     
     // Create command velocity subscriber
-    vehicle.driver_inputs_sub = m_node->create_subscription<chrono_ros_interface::msg::DriverInputs>(
+    vehicle.driver_inputs_sub = m_node->create_subscription<chrono_ros_interfaces::msg::DriverInputs>(
         topic_prefix + "inputs/driver_inputs", 10,
-        [this, id = vehicle.vehicle_id](const chrono_ros_interface::msg::DriverInputs::SharedPtr msg) {
+        [this, id = vehicle.vehicle_id](const chrono_ros_interfaces::msg::DriverInputs::SharedPtr msg) {
             handleVehicleControl(id, msg);
         });
     
@@ -196,7 +197,7 @@ void VehicleManager::updateVehicleOdometry(VehicleInstance& vehicle) {
 
 void VehicleManager::handleVehicleControl(
         int vehicle_id,
-        const geometry_msgs::msg::Twist::SharedPtr msg) {
+        const chrono_ros_interfaces::msg::DriverInputs::SharedPtr msg) {
     auto it = m_vehicles.find(vehicle_id);
     if (it == m_vehicles.end()) {
         RCLCPP_WARN(m_node->get_logger(), "Received control for unknown vehicle %d", vehicle_id);
@@ -209,14 +210,10 @@ void VehicleManager::handleVehicleControl(
     // Simple mapping - you can refine this based on your vehicle dynamics
     double max_speed = 10.0; // m/s - adjust based on your requirements
     
-    vehicle.control_inputs.throttle = std::clamp(msg->linear.x / max_speed, 0.0, 1.0);
-    vehicle.control_inputs.steering = std::clamp(-msg->angular.z, -1.0, 1.0); // Negative for correct direction
-    vehicle.control_inputs.braking = 0.0; // Could use negative linear.x for braking
-    
-    if (msg->linear.x < 0) {
-        vehicle.control_inputs.throttle = 0.0;
-        vehicle.control_inputs.braking = std::clamp(-msg->linear.x / max_speed, 0.0, 1.0);
-    }
+    vehicle.control_inputs.throttle = msg->throttle;
+    vehicle.control_inputs.steering = msg->steering;
+    vehicle.control_inputs.braking = msg->braking;
+    vehicle.control_inputs.clutch = msg->clutch;
     
     RCLCPP_DEBUG(m_node->get_logger(), "Vehicle %d: throttle=%.2f, steering=%.2f, braking=%.2f", 
                 vehicle_id, vehicle.control_inputs.throttle, 

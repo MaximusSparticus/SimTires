@@ -6,6 +6,7 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <std_srvs/srv/empty.hpp>
+#include <chrono_ros_interfaces/msg/driver_inputs.hpp>
 #include <memory>
 #include <unordered_map>
 
@@ -22,11 +23,12 @@ struct ControlInputs {
     double throttle = 0.0;  // [0, 1]
     double steering = 0.0;  // [-1, 1]
     double braking = 0.0;   // [0, 1]
+    double clutch = 0.0;   // [0, 1]
 };
 
 struct VehicleInstance {
     std::shared_ptr<chrono::vehicle::hmmwv::HMMWV_Full> vehicle;
-    rclcpp::Subscription<chrono_ros_interface::msg::DriverInputs>::SharedPtr driver_inputs_sub;
+    rclcpp::Subscription<chrono_ros_interfaces::msg::DriverInputs>::SharedPtr driver_inputs_sub;
     rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;
     std::string namespace_prefix;
     int vehicle_id;
@@ -56,7 +58,7 @@ class VehicleManager {
     void setupDefaultVehicle();
     void createVehicleROSInterface(VehicleInstance& vehicle);
     void updateVehicleOdometry(VehicleInstance& vehicle);
-    void handleVehicleControl(int vehicle_id, const chrono_ros_interface::msg::DriverInputs::SharedPtr msg);
+    void handleVehicleControl(int vehicle_id, const chrono_ros_interfaces::msg::DriverInputs::SharedPtr msg);
     
     std::shared_ptr<rclcpp::Node> m_node;
     std::shared_ptr<chrono::ChSystem> m_system;
