@@ -25,6 +25,7 @@
   
   <!-- Chrono ROS2 integration -->
   <depend>chrono_ros_interfaces</depend>
+  <depend>chrono_wrapper</depend>
   
   <!-- For launch files -->
   <exec_depend>launch</exec_depend>

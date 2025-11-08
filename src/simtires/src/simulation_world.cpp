@@ -6,6 +6,7 @@
 #include "chrono/utils/ChOpenMP.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
 #include "chrono_vehicle/ChVehicleDataPath.h"
+#include "chrono_vehicle/ChVehicleDataPath.h"
 #include <cstdlib>
 #include <algorithm>
 
@@ -22,18 +23,23 @@ void SimulationWorld::initialize() {
     RCLCPP_INFO(m_node->get_logger(), "Initializing simulation world...");
     
     // Check data directory - first try environment variable, then compile-time definition
-    const char* data_dir = std::getenv("CHRONO_DATA_DIR");
-    if (data_dir) {
-        RCLCPP_INFO(m_node->get_logger(), "CHRONO_DATA_DIR environment variable set to: %s", data_dir);
-    } else {
-        // Use compile-time definition
-        #ifdef CHRONO_DATA_DIR
-        RCLCPP_INFO(m_node->get_logger(), "Using compile-time CHRONO_DATA_DIR: %s", CHRONO_DATA_DIR);
-        chrono::SetChronoDataPath(CHRONO_DATA_DIR);
-        #else
-        RCLCPP_ERROR(m_node->get_logger(), "CHRONO_DATA_DIR not defined - terrain files will not be found!");
-        #endif
+    std::string data_dir;
+    if (std::getenv("CHRONO_DATA_DIR")) {
+        data_dir = std::string{std::getenv("CHRONO_DATA_DIR")};
     }
+    if (data_dir.empty()) {
+        data_dir = std::string{CHRONO_DATA_DIR};
+    }
+
+    // Make sure it ends with a '/' - this is a requirement of Chrono
+    if (data_dir.back() != '/') {
+        data_dir += "/";
+    }
+
+    // Set the paths
+    chrono::SetChronoDataPath(data_dir);
+    chrono::vehicle::SetVehicleDataPath(data_dir + "/vehicle/");
+    RCLCPP_INFO(m_node->get_logger(), "Chrono Data Directory set to: %s", data_dir.c_str());
     
     // Create Chrono system
     m_system = std::make_shared<chrono::ChSystemSMC>();

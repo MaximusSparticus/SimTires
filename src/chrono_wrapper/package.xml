@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>chrono_wrapper</name>
+  <version>0.1.0</version>
+  <description>colcon style wrapper package for building and integrating Project Chrono physics library</description>
+  <maintainer email="maxdiekel@gmail.com">Z. Max Diekel</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  
+  <!-- Critical: Must build chrono_ros_interfaces first -->
+  <build_depend>chrono_ros_interfaces</build_depend>
+  <exec_depend>chrono_ros_interfaces</exec_depend>
+  
+  <!-- System dependencies for Chrono -->
+  <build_depend>eigen3-dev</build_depend>
+  <build_depend>libirrlicht-dev</build_depend>
+  <build_depend>libgl1-mesa-dev</build_depend>
+  <build_depend>libglu1-mesa-dev</build_depend>
+  
+  <exec_depend>eigen3-dev</exec_depend>
+  <exec_depend>libirrlicht-dev</exec_depend>
+  <exec_depend>libgl1-mesa-dev</exec_depend>
+  <exec_depend>libglu1-mesa-dev</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

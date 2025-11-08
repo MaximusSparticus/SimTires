@@ -207,9 +207,6 @@ void VehicleManager::handleVehicleControl(
     // Convert ROS Twist to Chrono DriverInputs
     auto& vehicle = it->second;
     
-    // Simple mapping - you can refine this based on your vehicle dynamics
-    double max_speed = 10.0; // m/s - adjust based on your requirements
-    
     vehicle.control_inputs.throttle = msg->throttle;
     vehicle.control_inputs.steering = msg->steering;
     vehicle.control_inputs.braking = msg->braking;
